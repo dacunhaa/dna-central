@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.DNA_BACKEND_READY = new Promise(function (r) { window.__dnaResolve = r; });</script>
+<script type="module" src="backend.js?v=1792777841"></script>
 <title>DNA Central</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -766,7 +768,9 @@ svg { display: block; }
     lsWrite(c, v) { try { localStorage.setItem(this.key(c), JSON.stringify(v)); } catch (e) {} },
     async init() {
       let db = null;
-      try { if (window.claude && window.claude.use) db = await window.claude.use('db'); } catch (e) { db = null; }
+      // Fora do Claude (site no GitHub), o banco compartilhado vem do Firebase depois do login
+      if (window.DNA_BACKEND_READY) { try { window.DNA_BACKEND = await window.DNA_BACKEND_READY; db = window.DNA_BACKEND.db; } catch (e) { db = null; } }
+      else try { if (window.claude && window.claude.use) db = await window.claude.use('db'); } catch (e) { db = null; }
       this.db = db; this.mode = db ? 'shared' : 'local';
     },
     watch(c, cb) {
@@ -1017,6 +1021,7 @@ svg { display: block; }
   let assetsNs;
   async function getAssets() {
     if (assetsNs !== undefined) return assetsNs;
+    if (window.DNA_BACKEND) return (assetsNs = window.DNA_BACKEND.assets);
     try { assetsNs = window.claude && window.claude.use ? await window.claude.use('assets') : null; } catch (e) { assetsNs = null; }
     return assetsNs;
   }
@@ -1025,8 +1030,11 @@ svg { display: block; }
   function photoUrl(kind) {
     const P = PHOTO[kind];
     if (store.mode === 'local') { try { return localStorage.getItem(P.local) || ''; } catch (e) { return ''; } }
-    return state.look && state.look[P.field] ? '/_blob/' + state.look[P.field] : '';
+    const id = state.look && state.look[P.field];
+    if (!id) return '';
+    return window.DNA_BACKEND ? window.DNA_BACKEND.imageUrl(id) : '/_blob/' + id;
   }
+  window.addEventListener('dna-rerender', () => render());
   const bgUrl = () => photoUrl('bg');
   function applyBackdrop() {
     const u = bgUrl(); const b = $('#backdrop');
@@ -1735,7 +1743,7 @@ svg { display: block; }
     modalCtx = { kind: 'team' };
     modalShell('team-form', 'Equipe',
       `<div class="fields"><div class="field full"><label for="f-team">Nomes de quem recebe tarefas, separados por vírgula</label><input id="f-team" value="${esc(state.team.join(', '))}" autocomplete="off"></div></div>`,
-      `<div class="modal-foot"><span class="spacer"></span><button type="button" class="pill-btn" data-close>Cancelar</button><button type="submit" class="pill-btn solid">Salvar</button></div>`);
+      `<div class="modal-foot">${window.DNA_BACKEND && window.DNA_BACKEND.user ? `<button type="button" class="btn-del" id="btn-signout">Sair (${esc(window.DNA_BACKEND.user.email)})</button>` : ''}<span class="spacer"></span><button type="button" class="pill-btn" data-close>Cancelar</button><button type="submit" class="pill-btn solid">Salvar</button></div>`);
   }
 
   function openWho(note) {
@@ -1901,6 +1909,7 @@ svg { display: block; }
     if (t.closest('#btn-new')) return newItem(NEW_KIND[state.view]);
     const nw = t.closest('[data-new]'); if (nw) return newItem(nw.dataset.new);
     if (t.closest('#btn-team')) return openTeam();
+    if (t.id === 'btn-signout') return window.DNA_BACKEND.signOut().then(() => location.reload());
     if (t.closest('#btn-search')) return openSearch();
     if (t.closest('#btn-alerts')) return openAlerts();
     if (t.closest('#btn-look')) return openLook('bg');
