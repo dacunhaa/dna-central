@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.DNA_BACKEND_READY = new Promise(function (r) { window.__dnaResolve = r; });</script>
-<script type="module" src="backend.js?v=1792777841"></script>
+<script type="module" src="backend.js?v=1793575541"></script>
 <title>DNA Central</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -142,6 +142,8 @@ svg { display: block; }
 .cover .cv-btn { position: absolute; right: 14px; top: 14px; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #FFFFFF; background: rgba(12, 6, 14, .28); border: 1px solid rgba(255, 255, 255, .4); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .cover .cv-btn:hover { background: rgba(255, 255, 255, .25); }
 .cover .cv-btn svg { width: 16px; height: 16px; }
+.clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+.tile .d.pre { white-space: pre-line; padding-right: 0; }
 .msg .bub { cursor: pointer; }
 .msg .bub:hover { filter: brightness(1.08); }
 .msg em { font-style: normal; opacity: .7; }
@@ -571,7 +573,8 @@ svg { display: block; }
   .dots { display: flex; justify-content: center; }
   .cal { padding: 14px; }
   .grid-m, .wk { gap: 4px; }
-  .nav button { min-width: 42px; height: 48px; padding: 0 9px; }
+  .nav { overflow-x: auto; }
+  .nav button { min-width: 38px; height: 48px; padding: 0 8px; }
   .nav button svg { width: 21px; height: 21px; }
   .nav button[aria-current="page"] { padding: 0 12px; }
   .nav button[aria-current="page"] span { display: none; }
@@ -615,6 +618,7 @@ svg { display: block; }
   <button data-view="projetos" aria-label="Projetos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg><span>Projetos</span></button>
   <button data-view="clientes" aria-label="Clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c1-4.2 4-6.5 8-6.5s7 2.3 8 6.5"/></svg><span>Clientes</span></button>
   <button data-view="financas" aria-label="Finanças"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V7a2.5 2.5 0 0 1 2.5-2.5H17V8"/><rect x="3.5" y="8" width="17" height="11.5" rx="2.5"/><circle cx="16" cy="13.8" r="1.3" fill="currentColor"/></svg><span>Finanças</span></button>
+  <button data-view="espaco" aria-label="Meu espaço"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2v.6h5v-.6c0-.8.4-1.5 1-2A6 6 0 0 0 12 3.5z"/><path d="M10 20.5h4"/></svg><span>Meu espaço</span></button>
   <button data-view="metas" aria-label="Metas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5"/></svg><span>Metas</span></button>
 </nav>
 
@@ -657,7 +661,10 @@ svg { display: block; }
   const FIN_CATS = ['Ferramentas e assinaturas', 'Equipamento', 'Marketing e anúncios', 'Freelancers', 'Impostos e taxas', 'Transporte', 'Alimentação', 'Escritório', 'Cursos', 'Pró-labore', 'Outros'];
   const MS_METRICS = [['receita_ano', 'Faturamento acumulado no ano (R$)'], ['lucro_ano', 'Lucro acumulado no ano (R$)'], ['contratos_ano', 'Contratos fechados no ano'], ['clientes_ano', 'Contatos novos no ano'], ['manual', 'Eu atualizo o valor à mão']];
   const DEFAULT_TEAM = ['André', 'Danyelle'];
-  const KIND_COLOR = { events: 'var(--pink)', tasks: 'var(--yellow)', projects: 'var(--peri)', contacts: 'var(--lav)', finance: 'var(--mint)', milestones: 'var(--yellow)' };
+  const IDEA_STAGES = [['nova', 'Ideia nova'], ['construindo', 'Construindo'], ['validar', 'Para validar'], ['pronta', 'Pronta']];
+  const IDEA_COLOR = { nova: 'bg-lav', construindo: 'bg-pink', validar: 'bg-yellow', pronta: 'bg-peri' };
+  const BLOCK_COLORS = [['g-lav', 'Lilás'], ['g-pink', 'Rosa'], ['g-peri', 'Azul'], ['g-yellow', 'Amarelo'], ['g-gray', 'Vidro']];
+  const KIND_COLOR = { events: 'var(--pink)', tasks: 'var(--yellow)', projects: 'var(--peri)', contacts: 'var(--lav)', finance: 'var(--mint)', milestones: 'var(--yellow)', ideas: 'var(--pink)', blocks: 'var(--lav)' };
   const KIND_NAME = { events: 'Compromisso', tasks: 'Tarefa', projects: 'Entrega de projeto', contacts: 'Retorno de cliente' };
   const EV_COLORS = ['var(--pink)', 'var(--lav)', 'var(--yellow)', 'var(--peri)'];
   const label = (list, key) => (list.find(([k]) => k === key) || [, ''])[1];
@@ -820,14 +827,15 @@ svg { display: block; }
   }
 
   // ---------- Estado ----------
-  const VIEWS = ['inicio', 'tarefas', 'agenda', 'projetos', 'clientes', 'financas', 'metas'];
-  const COLLS = ['tasks', 'projects', 'contacts', 'events', 'goals', 'timers', 'timelogs', 'notes', 'finance', 'milestones'];
+  const VIEWS = ['inicio', 'tarefas', 'agenda', 'projetos', 'clientes', 'financas', 'espaco', 'metas'];
+  const COLLS = ['tasks', 'projects', 'contacts', 'events', 'goals', 'timers', 'timelogs', 'notes', 'finance', 'milestones', 'ideas', 'blocks'];
   const hashView = (location.hash || '').replace('#', '');
   const now0 = new Date();
   const state = {
     view: VIEWS.includes(hashView) ? hashView : 'inicio',
     team: DEFAULT_TEAM.slice(), loaded: {}, look: null,
     taskOwner: 'todos', taskProject: '', taskQuick: '', projFilter: 'ativos', projMode: 'cards',
+    spaceOwner: '', spaceTab: 'tarefas',
     crmHeat: '', crmQuery: '', finMonth: ym(now0), finType: '', metaYear: now0.getFullYear(),
     agendaDate: ymd(now0), agendaMonth: ym(now0),
     me: ''
@@ -1267,14 +1275,8 @@ svg { display: block; }
     </div>`;
   }
 
-  function viewTarefas() {
-    let list = state.tasks.slice();
-    if (state.taskOwner !== 'todos') list = list.filter(t => t.owner === state.taskOwner);
-    if (state.taskProject) list = list.filter(t => t.projectId === state.taskProject);
-    if (state.taskQuick === 'hoje') list = list.filter(t => daysFrom(t.due) === 0);
-    if (state.taskQuick === 'atrasadas') list = list.filter(t => t.status !== 'done' && daysFrom(t.due) !== null && daysFrom(t.due) < 0);
-    if (state.taskQuick === 'alta') list = list.filter(t => t.priority === 'alta');
-    const cols = TASK_STATUS.map(([k, name]) => {
+  function taskCols(list) {
+    return TASK_STATUS.map(([k, name]) => {
       let items = list.filter(t => (t.status || 'todo') === k);
       if (k === 'done') items.sort((a, b) => (b.doneAt || b.updatedAt || '').localeCompare(a.doneAt || a.updatedAt || ''));
       else items.sort((a, b) => byDue(a, b) || (prioRank[a.priority] ?? 1) - (prioRank[b.priority] ?? 1));
@@ -1282,6 +1284,16 @@ svg { display: block; }
       const body = shown.length ? shown.map(taskCard).join('') : `<div class="col-empty">${k === 'todo' ? 'Use + Nova tarefa para começar' : 'Arraste uma tarefa para cá'}</div>`;
       return `<section class="col" data-drop="tasks:status:${k}"><div class="col-head"><span class="name ${TASK_COLOR[k]}">${name} <span>${items.length}</span></span></div><div class="col-list">${body}${items.length > shown.length ? `<div class="more">+ ${items.length - shown.length} concluídas antes</div>` : ''}</div></section>`;
     }).join('');
+  }
+
+  function viewTarefas() {
+    let list = state.tasks.slice();
+    if (state.taskOwner !== 'todos') list = list.filter(t => t.owner === state.taskOwner);
+    if (state.taskProject) list = list.filter(t => t.projectId === state.taskProject);
+    if (state.taskQuick === 'hoje') list = list.filter(t => daysFrom(t.due) === 0);
+    if (state.taskQuick === 'atrasadas') list = list.filter(t => t.status !== 'done' && daysFrom(t.due) !== null && daysFrom(t.due) < 0);
+    if (state.taskQuick === 'alta') list = list.filter(t => t.priority === 'alta');
+    const cols = taskCols(list);
     const ownerChips = ['todos', ...state.team].map(o => `<button class="chip" data-owner="${esc(o)}" aria-pressed="${state.taskOwner === o}">${o === 'todos' ? 'Todos' : esc(o)}</button>`).join('');
     const quick = [['hoje', 'Hoje'], ['atrasadas', 'Atrasadas'], ['alta', '🔥 Alta prioridade']].map(([k, n]) => `<button class="chip" data-quick="${k}" aria-pressed="${state.taskQuick === k}">${n}</button>`).join('');
     const projOpts = `<option value="">Todos os projetos</option>` + state.projects.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.id}" ${state.taskProject === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
@@ -1483,6 +1495,50 @@ svg { display: block; }
       <div class="months">${monthsHtml}</div>`;
   }
 
+  // ---------- Área de cada pessoa: tarefas, ideias e espaço livre ----------
+  const spacePerson = () => [state.spaceOwner, state.me].find(n => n && state.team.includes(n)) || state.team[0];
+  const SPACE_KIND = { tarefas: 'tasks', ideias: 'ideas', livre: 'blocks' };
+
+  function ideaCard(i) {
+    return `<div class="card" draggable="true" data-drag="ideas:${i.id}" data-open="ideas:${i.id}" tabindex="0" role="button">
+      <div class="card-title">${esc(i.title)}</div>
+      ${i.text ? `<div class="card-sub clamp">${esc(i.text)}</div>` : ''}
+      ${i.obs ? `<div class="card-meta"><span class="tag">Tem observação</span></div>` : ''}
+    </div>`;
+  }
+
+  function viewEspaco() {
+    const who = spacePerson();
+    const mine = c => state[c].filter(x => x.owner === who);
+    const tasks = mine('tasks'), ideas = mine('ideas'), blocks = mine('blocks');
+    const people = state.team.map(m => `<button class="chip" data-space="${esc(m)}" aria-pressed="${m === who}">${esc(m)}${m === state.me ? ' (você)' : ''}</button>`).join('');
+    const tabs = [['tarefas', 'Tarefas', tasks.filter(t => t.status !== 'done').length], ['ideias', 'Ideias', ideas.length], ['livre', 'Espaço livre', blocks.length]]
+      .map(([k, n, c]) => `<button class="chip" data-spacetab="${k}" aria-pressed="${state.spaceTab === k}">${n} · ${c}</button>`).join('');
+    let content, btn;
+    if (state.spaceTab === 'ideias') {
+      btn = '+ Nova ideia';
+      content = `<div class="board" style="--cols:4">${IDEA_STAGES.map(([k, name]) => {
+        const items = ideas.filter(i => (i.stage || 'nova') === k).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+        return `<section class="col" data-drop="ideas:stage:${k}"><div class="col-head"><span class="name ${IDEA_COLOR[k]}">${name} <span>${items.length}</span></span></div><div class="col-list">${items.length ? items.map(ideaCard).join('') : `<div class="col-empty">${k === 'nova' ? 'Anote aqui a primeira ideia' : 'Arraste uma ideia para cá'}</div>`}</div></section>`;
+      }).join('')}</div>`;
+    } else if (state.spaceTab === 'livre') {
+      btn = '+ Novo bloco';
+      const sorted = blocks.slice().sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+      content = sorted.length ? `<div class="pgrid">${sorted.map(b => `<div class="tile pcard ${esc(b.color || 'g-gray')}" data-open="blocks:${b.id}" tabindex="0" role="button">
+        <span class="t">${esc(b.title)}</span>
+        ${b.text ? `<span class="d clamp pre">${esc(b.text)}</span>` : ''}
+        ${b.link ? `<span class="tg">Tem link</span>` : ''}
+      </div>`).join('')}</div>` : `<div class="empty">Este espaço é livre: anotações, listas, referências, links, o que quiser. Use <b>+ Novo bloco</b> para criar o primeiro.</div>`;
+    } else {
+      btn = '+ Nova tarefa';
+      content = `<div class="board" style="--cols:3">${taskCols(tasks)}</div>`;
+    }
+    return `
+      <div class="view-head"><div><h1 class="h-xl">Área de ${esc(who)}</h1><p>Tarefas de ${esc(who)}, ideias e um espaço livre para criar o que quiser.</p></div><button class="pill-btn solid" data-new="${SPACE_KIND[state.spaceTab]}">${btn}</button></div>
+      <div class="filters">${people}<span class="sep"></span>${tabs}</div>
+      ${content}`;
+  }
+
   // ---------- Metas em linha do tempo ----------
   function viewMetas() {
     const year = state.metaYear; const curKey = ym(new Date());
@@ -1558,7 +1614,7 @@ svg { display: block; }
     const kept = {}; const ae = document.activeElement;
     document.querySelectorAll('#view [data-keep]').forEach(el => { kept[el.id] = { v: el.value, focus: el === ae, s: el.selectionStart }; });
     const chat = $('#chat'); const nearBottom = !chat || chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
-    $('#view').innerHTML = { inicio: viewInicio, tarefas: viewTarefas, agenda: viewAgenda, projetos: viewProjetos, clientes: viewClientes, financas: viewFinancas, metas: viewMetas }[state.view]();
+    $('#view').innerHTML = { inicio: viewInicio, tarefas: viewTarefas, agenda: viewAgenda, projetos: viewProjetos, clientes: viewClientes, financas: viewFinancas, espaco: viewEspaco, metas: viewMetas }[state.view]();
     Object.entries(kept).forEach(([id, k]) => { const el = document.getElementById(id); if (!el) return; el.value = k.v; if (k.focus) { el.focus(); try { el.setSelectionRange(k.s, k.s); } catch (e) {} } });
     const chat2 = $('#chat'); if (chat2 && nearBottom) chat2.scrollTop = chat2.scrollHeight;
   }
@@ -1612,6 +1668,20 @@ svg { display: block; }
     if (kind === 'notes') return [
       { n: 'text', l: 'Recado', t: 'textarea', req: true, full: true }
     ];
+    if (kind === 'ideas') return [
+      { n: 'title', l: 'Ideia', t: 'text', req: true, full: true, ph: 'Ex.: Produto novo para a DNA' },
+      { n: 'text', l: 'Descrição', t: 'textarea', full: true },
+      { n: 'obs', l: 'Observações', t: 'textarea', full: true },
+      { n: 'stage', l: 'Etapa', t: 'select', o: IDEA_STAGES, def: 'nova' },
+      { n: 'owner', l: 'Área', t: 'select', o: team, def: spacePerson() }
+    ];
+    if (kind === 'blocks') return [
+      { n: 'title', l: 'Título', t: 'text', req: true, full: true, ph: 'Ex.: Referências, lista de compras, rascunho…' },
+      { n: 'text', l: 'Conteúdo', t: 'textarea', full: true },
+      { n: 'link', l: 'Link (opcional)', t: 'url', full: true, ph: 'https://' },
+      { n: 'color', l: 'Cor', t: 'select', o: BLOCK_COLORS, def: 'g-lav' },
+      { n: 'owner', l: 'Área', t: 'select', o: team, def: spacePerson() }
+    ];
     if (kind === 'milestones') return [
       { n: 'title', l: 'Marco', t: 'text', req: true, full: true, ph: 'Ex.: Chegar a R$ 300 mil faturados no ano' },
       { n: 'date', l: 'Até quando', t: 'date', req: true, def: state.metaYear + '-12-31' },
@@ -1634,8 +1704,8 @@ svg { display: block; }
       { n: 'notes', l: 'Anotações', t: 'textarea', full: true }
     ];
   }
-  const TITLES = { tasks: ['Nova tarefa', 'Editar tarefa'], events: ['Novo compromisso', 'Editar compromisso'], projects: ['Novo projeto', 'Editar projeto'], contacts: ['Novo contato', 'Editar contato'], finance: ['Novo lançamento', 'Editar lançamento'], milestones: ['Novo marco', 'Editar marco'], notes: ['Novo recado', 'Editar recado'] };
-  const CREATED = { notes: 'Recado enviado', tasks: 'Tarefa criada', events: 'Compromisso marcado', projects: 'Projeto criado', contacts: 'Contato criado', finance: 'Lançamento registrado', milestones: 'Marco criado' };
+  const TITLES = { tasks: ['Nova tarefa', 'Editar tarefa'], events: ['Novo compromisso', 'Editar compromisso'], projects: ['Novo projeto', 'Editar projeto'], contacts: ['Novo contato', 'Editar contato'], finance: ['Novo lançamento', 'Editar lançamento'], milestones: ['Novo marco', 'Editar marco'], notes: ['Novo recado', 'Editar recado'], ideas: ['Nova ideia', 'Editar ideia'], blocks: ['Novo bloco', 'Editar bloco'] };
+  const CREATED = { notes: 'Recado enviado', ideas: 'Ideia criada', blocks: 'Bloco criado', tasks: 'Tarefa criada', events: 'Compromisso marcado', projects: 'Projeto criado', contacts: 'Contato criado', finance: 'Lançamento registrado', milestones: 'Marco criado' };
 
   function inputHtml(f, val) {
     const id = 'f-' + f.n; const v = val ?? f.def ?? '';
@@ -1680,7 +1750,8 @@ svg { display: block; }
         ${logRows ? `<div class="list" style="margin-bottom:10px">${logRows}</div>` : ''}
         ${item.status !== 'done' ? (run ? (run.who === state.me ? `<button type="button" class="pill-btn small" data-stop>■ Parar cronômetro</button>` : `<span class="tag">⏱ ${esc(run.who)} está com o cronômetro ligado</span>`) : `<button type="button" class="pill-btn small" data-timer="${item.id}">▶ Ligar cronômetro</button>`) : ''}</div>`;
     }
-    if (kind === 'milestones' && item) extra = `<div class="sub-sec"><h3>Agora: ${msMoney(item) ? brl(msValue(item)) : msValue(item)} de ${msMoney(item) ? brl(item.target) : item.target}</h3></div>`;
+    if (kind === 'blocks' && item && /^https?:\/\//i.test(item.link || '')) extra = `<div class="sub-sec"><a class="link" href="${esc(item.link)}" target="_blank" rel="noopener">Abrir o link</a></div>`;
+    if (kind === 'milestones' && item) extra =`<div class="sub-sec"><h3>Agora: ${msMoney(item) ? brl(msValue(item)) : msValue(item)} de ${msMoney(item) ? brl(item.target) : item.target}</h3></div>`;
     const dl = kind === 'projects' ? `<datalist id="dl-contacts">${state.contacts.map(c => `<option value="${esc(c.company || c.name)}">`).join('')}</datalist>` : '';
     modalShell('modal-form', TITLES[kind][item ? 1 : 0],
       `<div class="fields">${fieldsFor(kind).map(f => `<div class="field ${f.full ? 'full' : ''}"><label for="f-${f.n}">${f.l}${f.req ? ' *' : ''}</label>${inputHtml(f, data[f.n])}</div>`).join('')}</div>${dl}${extra}`,
@@ -1820,7 +1891,9 @@ svg { display: block; }
       ...state.projects.filter(p => hit(p, ['name', 'client', 'notes'])).map(p => ({ k: 'projects', id: p.id, t: p.name, s: 'Projeto · ' + label(PROJECT_STATUS, p.status) })),
       ...state.contacts.filter(c => hit(c, ['name', 'company', 'instagram', 'whatsapp', 'notes'])).map(c => ({ k: 'contacts', id: c.id, t: c.name, s: 'Cliente · ' + label(STAGES, c.stage) })),
       ...state.finance.filter(f => hit(f, ['title', 'category', 'notes'])).map(f => ({ k: 'finance', id: f.id, t: f.title, s: label(FIN_TYPES, f.type) + ' · ' + brl(f.amount) })),
-      ...state.milestones.filter(m => hit(m, ['title', 'notes'])).map(m => ({ k: 'milestones', id: m.id, t: m.title, s: 'Marco · ' + shortDate(m.date) }))
+      ...state.milestones.filter(m => hit(m, ['title', 'notes'])).map(m => ({ k: 'milestones', id: m.id, t: m.title, s: 'Marco · ' + shortDate(m.date) })),
+      ...state.ideas.filter(i => hit(i, ['title', 'text', 'obs'])).map(i => ({ k: 'ideas', id: i.id, t: i.title, s: 'Ideia · área de ' + i.owner })),
+      ...state.blocks.filter(b => hit(b, ['title', 'text', 'link'])).map(b => ({ k: 'blocks', id: b.id, t: b.title, s: 'Espaço livre · área de ' + b.owner }))
     ].slice(0, 30);
     box.innerHTML = res.length ? `<div class="list">${res.map(r => `<div class="row" data-open="${r.k}:${r.id}"><span class="row-ic" style="background:${KIND_COLOR[r.k]}">${esc(r.t.charAt(0).toUpperCase())}</span><div class="row-main"><div class="row-title">${esc(r.t)}</div><div class="row-sub">${esc(r.s)}</div></div>${chev}</div>`).join('')}</div>` : '<div class="empty">Nada encontrado.</div>';
   }
@@ -1897,7 +1970,7 @@ svg { display: block; }
     if (kind === 'tasks' && value === 'done') { const t = myTimer(); if (t && t.taskId === id) stopTimer(); }
   }
   function newItem(kind) {
-    const preset = kind === 'tasks' && state.view === 'tarefas' && state.taskProject ? { projectId: state.taskProject } : null;
+    const preset = state.view === 'espaco' ? { owner: spacePerson() } : kind === 'tasks' && state.view === 'tarefas' && state.taskProject ? { projectId: state.taskProject } : null;
     openForm(kind, null, preset);
   }
 
@@ -1906,7 +1979,9 @@ svg { display: block; }
     const nav = t.closest('.nav button'); if (nav) return go(nav.dataset.view);
     if (t.closest('#btn-theme')) { theme = theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('dna-central:theme', theme); } catch (er) {} return applyTheme(); }
     const g = t.closest('[data-go]'); if (g) { if (modalCtx) closeModal(); return go(g.dataset.go); }
-    if (t.closest('#btn-new')) return newItem(NEW_KIND[state.view]);
+    if (t.closest('#btn-new')) return newItem(state.view === 'espaco' ? SPACE_KIND[state.spaceTab] : NEW_KIND[state.view]);
+    const sp = t.closest('[data-space]'); if (sp) { state.spaceOwner = sp.dataset.space; return render(); }
+    const st = t.closest('[data-spacetab]'); if (st) { state.spaceTab = st.dataset.spacetab; return render(); }
     const nw = t.closest('[data-new]'); if (nw) return newItem(nw.dataset.new);
     if (t.closest('#btn-team')) return openTeam();
     if (t.id === 'btn-signout') return window.DNA_BACKEND.signOut().then(() => location.reload());
