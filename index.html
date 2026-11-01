@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.DNA_BACKEND_READY = new Promise(function (r) { window.__dnaResolve = r; });</script>
-<script type="module" src="backend.js?v=1793575541"></script>
+<script type="module" src="backend.js?v=1793576617"></script>
 <title>DNA Central</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1275,14 +1275,14 @@ svg { display: block; }
     </div>`;
   }
 
-  function taskCols(list) {
+  function taskCols(list, quickAdd) {
     return TASK_STATUS.map(([k, name]) => {
       let items = list.filter(t => (t.status || 'todo') === k);
       if (k === 'done') items.sort((a, b) => (b.doneAt || b.updatedAt || '').localeCompare(a.doneAt || a.updatedAt || ''));
       else items.sort((a, b) => byDue(a, b) || (prioRank[a.priority] ?? 1) - (prioRank[b.priority] ?? 1));
       const shown = k === 'done' ? items.slice(0, 25) : items;
       const body = shown.length ? shown.map(taskCard).join('') : `<div class="col-empty">${k === 'todo' ? 'Use + Nova tarefa para começar' : 'Arraste uma tarefa para cá'}</div>`;
-      return `<section class="col" data-drop="tasks:status:${k}"><div class="col-head"><span class="name ${TASK_COLOR[k]}">${name} <span>${items.length}</span></span></div><div class="col-list">${body}${items.length > shown.length ? `<div class="more">+ ${items.length - shown.length} concluídas antes</div>` : ''}</div></section>`;
+      return `<section class="col" data-drop="tasks:status:${k}"><div class="col-head"><span class="name ${TASK_COLOR[k]}">${name} <span>${items.length}</span></span>${quickAdd && k === 'todo' ? `<button class="ic-btn sm" data-quicktask aria-label="Criar tarefa" title="Criar tarefa">${ICON_PLUS}</button>` : ''}</div><div class="col-list">${body}${items.length > shown.length ? `<div class="more">+ ${items.length - shown.length} concluídas antes</div>` : ''}</div></section>`;
     }).join('');
   }
 
@@ -1531,7 +1531,7 @@ svg { display: block; }
       </div>`).join('')}</div>` : `<div class="empty">Este espaço é livre: anotações, listas, referências, links, o que quiser. Use <b>+ Novo bloco</b> para criar o primeiro.</div>`;
     } else {
       btn = '+ Nova tarefa';
-      content = `<div class="board" style="--cols:3">${taskCols(tasks)}</div>`;
+      content = `<div class="board" style="--cols:3">${taskCols(tasks, true)}</div>`;
     }
     return `
       <div class="view-head"><div><h1 class="h-xl">Área de ${esc(who)}</h1><p>Tarefas de ${esc(who)}, ideias e um espaço livre para criar o que quiser.</p></div><button class="pill-btn solid" data-new="${SPACE_KIND[state.spaceTab]}">${btn}</button></div>
@@ -1980,6 +1980,10 @@ svg { display: block; }
     if (t.closest('#btn-theme')) { theme = theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('dna-central:theme', theme); } catch (er) {} return applyTheme(); }
     const g = t.closest('[data-go]'); if (g) { if (modalCtx) closeModal(); return go(g.dataset.go); }
     if (t.closest('#btn-new')) return newItem(state.view === 'espaco' ? SPACE_KIND[state.spaceTab] : NEW_KIND[state.view]);
+    if (t.closest('[data-quicktask]')) {
+      const now = new Date().toISOString();
+      return write(() => store.save('tasks', uid(), { title: 'Nova tarefa', status: 'todo', owner: spacePerson(), due: '', priority: 'media', projectId: '', notes: '', doneAt: null, createdAt: now, updatedAt: now }));
+    }
     const sp = t.closest('[data-space]'); if (sp) { state.spaceOwner = sp.dataset.space; return render(); }
     const st = t.closest('[data-spacetab]'); if (st) { state.spaceTab = st.dataset.spacetab; return render(); }
     const nw = t.closest('[data-new]'); if (nw) return newItem(nw.dataset.new);
