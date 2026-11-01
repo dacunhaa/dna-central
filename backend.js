@@ -94,11 +94,33 @@ document.getElementById('dna-login').addEventListener('click', async () => {
   catch (e) { msg(e && e.code === 'auth/popup-blocked' ? 'O navegador bloqueou a janela de login. Permita pop-ups e tente de novo.' : e && e.code === 'auth/popup-closed-by-user' ? '' : 'Não foi possível entrar. Tente de novo.'); }
 });
 
+// Cadastra uma única vez as ideias iniciais na área de cada pessoa
+const STARTER_IDEAS = [
+  { key: 'gta6', title: 'Produto relacionado ao GTA 6', text: 'Pensar em algo ligado ao GTA 6 para os nossos projetos e criar um produto em torno disso.', obs: '' },
+  {
+    key: 'crm-nichos', title: 'Sistemas e CRMs personalizados por nicho de profissão',
+    text: 'Construir sistemas e CRMs personalizados para nichos de profissões, com a Danyelle fazendo a venda direta.',
+    obs: 'É uma ideia interessante porque dá para ter clientes com assinatura mensal do sistema e cobrar uma taxa de implementação. Também é mais fácil de vender: não é como o site, em que é preciso fazer um site novo toda hora para vender. Podemos vender tanto sistemas quanto sites: quem já tiver site compra o sistema, e vice-versa.'
+  }
+];
+async function seedIdeas() {
+  const flag = doc(fs, 'config/seed-ideias-1');
+  if ((await getDoc(flag)).exists()) return;
+  const teamDoc = await getDoc(doc(fs, 'config/team'));
+  const team = teamDoc.exists() && Array.isArray(teamDoc.data().members) && teamDoc.data().members.length ? teamDoc.data().members : ['André', 'Danyelle'];
+  const now = new Date().toISOString();
+  for (const owner of team.slice(0, 2)) {
+    const who = owner.normalize('NFD').replace(/\p{M}/gu, '').replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase();
+    for (const { key, title, text, obs } of STARTER_IDEAS) await setDoc(doc(fs, `ideas/${key}-${who}`), { title, text, obs, stage: 'nova', owner, createdAt: now, updatedAt: now });
+  }
+  await setDoc(flag, { doneAt: now });
+}
+
 let resolved = false;
 onAuthStateChanged(auth, user => {
   if (!user) { gate.style.display = 'grid'; return; }
   const email = (user.email || '').toLowerCase();
   if (!ALLOWED.includes(email)) { gate.style.display = 'grid'; msg(`O e-mail ${email} não tem acesso. Entre com outra conta.`); return; }
   gate.style.display = 'none';
-  if (!resolved) { resolved = true; window.__dnaResolve({ db, assets, imageUrl, user, signOut: () => signOut(auth) }); }
+  if (!resolved) { resolved = true; window.__dnaResolve({ db, assets, imageUrl, user, signOut: () => signOut(auth) }); seedIdeas().catch(() => {}); }
 });
